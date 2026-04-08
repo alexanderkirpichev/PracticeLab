@@ -73,6 +73,7 @@ paths:
                 description: "Полный курс по созданию веб-приложений на Django"
                 status: "available"
                 payment_status: "paid"
+                schedule_status: "scheduled"
                 is_completed: false
                 order_index: 2
                 created_at: "2024-02-01T09:15:00Z"
@@ -114,6 +115,7 @@ paths:
                 description: "Изучение основ HTTP и принципов REST"
                 status: "current"
                 has_review: true
+                is_required: true
                 is_overdue: false
                 order_index: 3
                 is_first_in_course: false
@@ -197,8 +199,11 @@ paths:
                 title: "Реализация REST API для блога"
                 description: "Создание API endpoints для CRUD операций с постами"
                 status: "submitted"
+                submission_count: 1
+                review_stage: "robot"
                 submitted_at: "2024-02-12T16:45:00Z"
                 accepted_at: null
+                returned_at: null
                 created_at: "2024-02-10T14:00:00Z"
                 updated_at: "2024-02-12T16:45:00Z"
         '404':
@@ -251,6 +256,7 @@ components:
         - title
         - status
         - payment_status
+        - schedule_status
         - is_completed
         - order_index
         - created_at
@@ -277,8 +283,12 @@ components:
           description: Статус курса
         payment_status:
           type: string
-          enum: [unpaid, paid, scheduled]
+          enum: [unpaid, paid]
           description: Статус оплаты
+        schedule_status:
+          type: string
+          enum: [not_scheduled, scheduled]
+          description: Статус расписания
         is_completed:
           type: boolean
           description: Завершен ли курс
@@ -303,6 +313,7 @@ components:
         - title
         - status
         - has_review
+        - is_required
         - is_overdue
         - order_index
         - is_first_in_course
@@ -332,6 +343,9 @@ components:
         has_review:
           type: boolean
           description: Требуется ли ревью работы
+        is_required:
+          type: boolean
+          description: Обязателен ли урок для прохождения курса
         is_overdue:
           type: boolean
           description: Просрочен ли урок
@@ -410,6 +424,7 @@ components:
       required:
         - id
         - lesson_id
+        - submission_count
         - created_at
         - updated_at
       properties:
@@ -432,9 +447,18 @@ components:
           description: Описание работы
         status:
           type: string
-          enum: [in_progress, submitted, accepted, overdue]
+          enum: [in_progress, submitted, accepted, overdue, returned]
           nullable: true
           description: Статус работы
+        submission_count:
+          type: integer
+          minimum: 0
+          description: Количество отправок на ревью
+        review_stage:
+          type: string
+          enum: [robot, junior_reviewer, senior_reviewer]
+          nullable: true
+          description: Этап ревью
         submitted_at:
           type: string
           format: date-time
@@ -445,6 +469,11 @@ components:
           format: date-time
           nullable: true
           description: Дата принятия работы
+        returned_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата возврата на доработку
         created_at:
           type: string
           format: date-time

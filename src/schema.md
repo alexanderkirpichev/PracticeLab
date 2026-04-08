@@ -23,7 +23,8 @@
 | title | VARCHAR(255) | Да | Название курса |
 | description | TEXT | Нет | Описание курса |
 | status | ENUM | Да | Статус курса: `developing`, `available`, `archived` |
-| payment_status | ENUM | Да | Статус оплаты: `unpaid`, `paid`, `scheduled` |
+| payment_status | ENUM | Да | Статус оплаты: `unpaid`, `paid` |
+| schedule_status | ENUM | Да | Статус расписания: `not_scheduled`, `scheduled` |
 | is_completed | BOOLEAN | Да | Завершен ли курс |
 | order_index | INTEGER | Да | Порядковый номер в рамках платформы |
 | created_at | TIMESTAMP | Да | Дата создания записи |
@@ -44,6 +45,7 @@
 | description | TEXT | Нет | Описание урока |
 | status | ENUM | Да | Статус урока: `pending`, `current`, `completed` |
 | has_review | BOOLEAN | Да | Требуется ли ревью работы |
+| is_required | BOOLEAN | Да | Обязателен ли урок для прохождения курса |
 | is_overdue | BOOLEAN | Да | Просрочен ли урок |
 | order_index | INTEGER | Да | Порядковый номер в рамках курса |
 | is_first_in_course | BOOLEAN | Да | Первый ли урок в курсе |
@@ -85,16 +87,21 @@
 | lesson_id | UUID | Да | Ссылка на урок |
 | title | VARCHAR(255) | Да | Название работы |
 | description | TEXT | Нет | Описание работы |
-| status | ENUM | Да | Статус работы: `in_progress`, `submitted`, `accepted`, `overdue` |
+| status | ENUM | Да | Статус работы: `in_progress`, `submitted`, `accepted`, `overdue`, `returned` |
+| submission_count | INTEGER | Да | Количество отправок на ревью |
+| review_stage | ENUM | Нет | Этап ревью: `robot`, `junior_reviewer`, `senior_reviewer` |
 | submitted_at | TIMESTAMP | Нет | Дата отправки на ревью |
 | accepted_at | TIMESTAMP | Нет | Дата принятия работы |
+| returned_at | TIMESTAMP | Нет | Дата возврата на доработку |
 | created_at | TIMESTAMP | Да | Дата создания записи |
 | updated_at | TIMESTAMP | Да | Дата последнего обновления |
 
 **Constraints:**
 - `FOREIGN KEY (lesson_id) REFERENCES lesson(id)`
+- `CHECK (submission_count >= 0)` - счетчик отправок не может быть отрицательным
 - `CHECK (NOT (submitted_at IS NOT NULL AND status = 'in_progress'))` - если отправлена, не может быть в работе
 - `CHECK (NOT (accepted_at IS NOT NULL AND status != 'accepted'))` - если принята, статус должен быть accepted
+- `CHECK (NOT (returned_at IS NOT NULL AND status != 'returned'))` - если возвращена, статус должен быть returned
 
 ## Связи
 
@@ -125,6 +132,7 @@
   "description": "Курс по основам программирования на Python",
   "status": "developing",
   "payment_status": "unpaid",
+  "schedule_status": "not_scheduled",
   "is_completed": false,
   "order_index": 1,
   "created_at": "2024-01-20T14:30:00Z",
@@ -132,7 +140,7 @@
 }
 ```
 
-### Курс (доступный для выбора, оплаченный)
+### Курс (доступный для выбора, оплаченный, расписание согласовано)
 ```json
 {
   "id": "8d1e6679-8525-50de-a44b-f17fc1f90ae8",
@@ -141,6 +149,7 @@
   "description": "Полный курс по созданию веб-приложений на Django",
   "status": "available",
   "payment_status": "paid",
+  "schedule_status": "scheduled",
   "is_completed": false,
   "order_index": 2,
   "created_at": "2024-02-01T09:15:00Z",
@@ -148,7 +157,24 @@
 }
 ```
 
-### Урок (текущий, с ревью)
+### Курс (архивный)
+```json
+{
+  "id": "9f2a7780-9635-60ef-b55c-g28gd2g01bf9",
+  "platform_id": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "Устаревший курс по PHP 5",
+  "description": "Курс по устаревшей версии PHP",
+  "status": "archived",
+  "payment_status": "unpaid",
+  "schedule_status": "not_scheduled",
+  "is_completed": false,
+  "order_index": 3,
+  "created_at": "2023-06-01T10:00:00Z",
+  "updated_at": "2024-01-15T14:30:00Z"
+}
+```
+
+### Урок (текущий, с ревью, обязательный)
 ```json
 {
   "id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
@@ -157,6 +183,7 @@
   "description": "Изучение основ HTTP и принципов REST",
   "status": "current",
   "has_review": true,
+  "is_required": true,
   "is_overdue": false,
   "order_index": 3,
   "is_first_in_course": false,
@@ -166,7 +193,7 @@
 }
 ```
 
-### Урок (пройденный, без ревью)
+### Урок (пройденный, без ревью, обязательный)
 ```json
 {
   "id": "af308791-a746-71fg-c66d-h39he3h12cg0",
@@ -175,12 +202,32 @@
   "description": "Основы синтаксиса Python",
   "status": "completed",
   "has_review": false,
+  "is_required": true,
   "is_overdue": false,
   "order_index": 1,
   "is_first_in_course": true,
   "is_last_in_course": false,
   "created_at": "2024-02-01T10:00:00Z",
   "updated_at": "2024-02-08T14:20:00Z"
+}
+```
+
+### Урок (необязательный, без ревью)
+```json
+{
+  "id": "gh9643i7-id8c-37jk-i22k-n95on9o78im6",
+  "course_id": "8d1e6679-8525-50de-a44b-f17fc1f90ae8",
+  "title": "Дополнительные материалы по Git",
+  "description": "Продвинутые техники работы с Git",
+  "status": "pending",
+  "has_review": false,
+  "is_required": false,
+  "is_overdue": false,
+  "order_index": 8,
+  "is_first_in_course": false,
+  "is_last_in_course": false,
+  "created_at": "2024-02-05T11:00:00Z",
+  "updated_at": "2024-02-05T11:00:00Z"
 }
 ```
 
@@ -216,7 +263,7 @@
 }
 ```
 
-### Работа ученика (выполненная, отправлена)
+### Работа ученика (выполненная, отправлена на ревью роботу)
 ```json
 {
   "id": "di6310c4-da79-04ij-f99g-k62kh6k45fj3",
@@ -224,23 +271,65 @@
   "title": "Реализация REST API для блога",
   "description": "Создание API endpoints для CRUD операций с постами",
   "status": "submitted",
+  "submission_count": 1,
+  "review_stage": "robot",
   "submitted_at": "2024-02-12T16:45:00Z",
   "accepted_at": null,
+  "returned_at": null,
   "created_at": "2024-02-10T14:00:00Z",
   "updated_at": "2024-02-12T16:45:00Z"
+}
+```
+
+### Работа ученика (возвращена на доработку)
+```json
+{
+  "id": "ej7421d5-eb8a-15jk-g00h-l73li7l56gk4",
+  "lesson_id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
+  "title": "Реализация REST API для блога (исправленная)",
+  "description": "Создание API endpoints для CRUD операций с постами - исправленная версия",
+  "status": "returned",
+  "submission_count": 2,
+  "review_stage": "junior_reviewer",
+  "submitted_at": "2024-02-14T10:30:00Z",
+  "accepted_at": null,
+  "returned_at": "2024-02-15T09:15:00Z",
+  "created_at": "2024-02-10T14:00:00Z",
+  "updated_at": "2024-02-15T09:15:00Z"
+}
+```
+
+### Работа ученика (принята старшим проверяющим)
+```json
+{
+  "id": "fk8532e6-fc9b-26kl-h11i-m84mj8m67hl5",
+  "lesson_id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
+  "title": "Реализация REST API для блога (финальная)",
+  "description": "Создание API endpoints для CRUD операций с постами - финальная версия",
+  "status": "accepted",
+  "submission_count": 3,
+  "review_stage": "senior_reviewer",
+  "submitted_at": "2024-02-16T14:20:00Z",
+  "accepted_at": "2024-02-17T11:45:00Z",
+  "returned_at": null,
+  "created_at": "2024-02-10T14:00:00Z",
+  "updated_at": "2024-02-17T11:45:00Z"
 }
 ```
 
 ### Работа ученика (просроченная)
 ```json
 {
-  "id": "ej7421d5-eb8a-15jk-g00h-l73li7l56gk4",
+  "id": "gl9643i7-jd9d-48kl-j33l-o06po0p89jn7",
   "lesson_id": "af308791-a746-71fg-c66d-h39he3h12cg0",
   "title": "Практика с базовыми типами данных",
   "description": "Упражнения со списками, словарями и кортежами",
   "status": "overdue",
+  "submission_count": 0,
+  "review_stage": null,
   "submitted_at": null,
   "accepted_at": null,
+  "returned_at": null,
   "created_at": "2024-02-03T11:00:00Z",
   "updated_at": "2024-02-10T09:00:00Z"
 }
@@ -249,13 +338,16 @@
 ### Крайний случай: отсутствует работа для урока без ревью
 ```json
 {
-  "id": "fk8532e6-fc9b-26kl-h11i-m84mj8m67hl5",
+  "id": "hm0754j8-ke0e-59lm-k44m-p17qp1q90ko8",
   "lesson_id": "af308791-a746-71fg-c66d-h39he3h12cg0",
   "title": null,
   "description": null,
   "status": null,
+  "submission_count": 0,
+  "review_stage": null,
   "submitted_at": null,
   "accepted_at": null,
+  "returned_at": null,
   "created_at": "2024-02-01T10:00:00Z",
   "updated_at": "2024-02-01T10:00:00Z"
 }
