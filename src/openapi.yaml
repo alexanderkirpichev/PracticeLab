@@ -1,12 +1,16 @@
 openapi: 3.0.3
 info:
   title: PracticeLab API
-  description: API для образовательной платформы PracticeLab
+  description: API для платформы дистанционного обучения PracticeLab
   version: 1.0.0
+  contact:
+    name: PracticeLab Team
+    url: https://dvmn.org
+
 servers:
   - url: https://api.practicelab.example.com/v1
     description: Production server
-  - url: https://staging-api.practicelab.example.com/v1
+  - url: https://api.staging.practicelab.example.com/v1
     description: Staging server
 
 paths:
@@ -49,16 +53,17 @@ paths:
   /courses/{id}:
     get:
       summary: Получить информацию о курсе
-      description: Возвращает детальную информацию о курсе
+      description: Возвращает информацию о курсе по его идентификатору
+      operationId: getCourseById
       parameters:
         - name: id
           in: path
+          description: Идентификатор курса
           required: true
           schema:
             type: string
             format: uuid
-            example: "8d1e6679-8525-50de-a44b-f17fc1f90ae8"
-          description: UUID курса
+            example: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
       responses:
         '200':
           description: Успешный ответ с информацией о курсе
@@ -67,40 +72,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/Course'
               example:
-                id: "8d1e6679-8525-50de-a44b-f17fc1f90ae8"
+                id: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
                 platform_id: "550e8400-e29b-41d4-a716-446655440000"
                 title: "Веб-разработка на Django"
                 description: "Полный курс по созданию веб-приложений на Django"
-                status: "available"
-                payment_status: "paid"
-                schedule_status: "scheduled"
-                is_completed: false
-                order_index: 2
-                created_at: "2024-02-01T09:15:00Z"
-                updated_at: "2024-02-10T11:20:00Z"
+                lifecycle_status: "active"
+                is_paid: true
+                has_schedule: true
+                created_at: "2026-02-10T11:00:00Z"
+                updated_at: "2026-02-15T14:30:00Z"
         '404':
           description: Курс не найден
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-              example:
-                error: "Course not found"
-                message: "Course with ID 8d1e6679-8525-50de-a44b-f17fc1f90ae8 does not exist"
 
   /lessons/{id}:
     get:
       summary: Получить информацию об уроке
-      description: Возвращает детальную информацию об уроке
+      description: Возвращает информацию об уроке по его идентификатору
+      operationId: getLessonById
       parameters:
         - name: id
           in: path
+          description: Идентификатор урока
           required: true
           schema:
             type: string
             format: uuid
             example: "9e2f7780-9635-60ef-b55c-g28gd2g01bf9"
-          description: UUID урока
       responses:
         '200':
           description: Успешный ответ с информацией об уроке
@@ -110,41 +111,37 @@ paths:
                 $ref: '#/components/schemas/Lesson'
               example:
                 id: "9e2f7780-9635-60ef-b55c-g28gd2g01bf9"
-                course_id: "8d1e6679-8525-50de-a44b-f17fc1f90ae8"
+                course_id: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
                 title: "HTTP протокол и REST API"
                 description: "Изучение основ HTTP и принципов REST"
-                status: "current"
+                order_number: 3
                 has_review: true
-                is_required: true
-                is_overdue: false
-                order_index: 3
-                is_first_in_course: false
-                is_last_in_course: false
-                created_at: "2024-02-05T10:00:00Z"
-                updated_at: "2024-02-12T15:30:00Z"
+                is_optional: false
+                is_first: false
+                is_last: false
+                created_at: "2026-02-10T12:00:00Z"
+                updated_at: "2026-02-10T12:00:00Z"
         '404':
           description: Урок не найден
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-              example:
-                error: "Lesson not found"
-                message: "Lesson with ID 9e2f7780-9635-60ef-b55c-g28gd2g01bf9 does not exist"
 
   /steps/{id}:
     get:
       summary: Получить информацию о шаге
-      description: Возвращает детальную информацию о шаге урока
+      description: Возвращает информацию о шаге урока по его идентификатору
+      operationId: getStepById
       parameters:
         - name: id
           in: path
+          description: Идентификатор шага
           required: true
           schema:
             type: string
             format: uuid
-            example: "bg4198a2-b857-82gh-d77e-i40if4i23dh1"
-          description: UUID шага
+            example: "af308791-a746-71fg-c66d-h39he3h12cg0"
       responses:
         '200':
           description: Успешный ответ с информацией о шаге
@@ -153,68 +150,97 @@ paths:
               schema:
                 $ref: '#/components/schemas/Step'
               example:
-                id: "bg4198a2-b857-82gh-d77e-i40if4i23dh1"
+                id: "af308791-a746-71fg-c66d-h39he3h12cg0"
                 lesson_id: "9e2f7780-9635-60ef-b55c-g28gd2g01bf9"
                 title: "Склонируй репозиторий с GitHub"
                 description: "Клонирование учебного репозитория для начала работы"
-                type: "practice"
+                order_number: 1
                 has_checklist: true
-                has_illustration: true
-                order_index: 1
-                created_at: "2024-02-05T10:05:00Z"
-                updated_at: "2024-02-05T10:05:00Z"
+                has_illustration: false
+                created_at: "2026-02-10T12:05:00Z"
+                updated_at: "2026-02-10T12:05:00Z"
         '404':
           description: Шаг не найден
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-              example:
-                error: "Step not found"
-                message: "Step with ID bg4198a2-b857-82gh-d77e-i40if4i23dh1 does not exist"
 
-  /homeworks/{id}:
+  /student-works/{id}:
     get:
       summary: Получить информацию о работе ученика
-      description: Возвращает детальную информацию о работе ученика
+      description: Возвращает информацию о работе ученика по её идентификатору
+      operationId: getStudentWorkById
       parameters:
         - name: id
           in: path
+          description: Идентификатор работы ученика
           required: true
           schema:
             type: string
             format: uuid
-            example: "di6310c4-da79-04ij-f99g-k62kh6k45fj3"
-          description: UUID работы ученика
+            example: "ch5209b3-c968-93hi-e88f-j51jg5j34ei2"
       responses:
         '200':
           description: Успешный ответ с информацией о работе ученика
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Homework'
+                $ref: '#/components/schemas/StudentWork'
               example:
-                id: "di6310c4-da79-04ij-f99g-k62kh6k45fj3"
+                id: "ch5209b3-c968-93hi-e88f-j51jg5j34ei2"
                 lesson_id: "9e2f7780-9635-60ef-b55c-g28gd2g01bf9"
-                title: "Реализация REST API для блога"
-                description: "Создание API endpoints для CRUD операций с постами"
-                status: "submitted"
-                submission_count: 1
-                review_stage: "robot"
-                submitted_at: "2024-02-12T16:45:00Z"
-                accepted_at: null
-                returned_at: null
-                created_at: "2024-02-10T14:00:00Z"
-                updated_at: "2024-02-12T16:45:00Z"
+                student_id: "123e4567-e89b-12d3-a456-426614174001"
+                status: "in_work"
+                is_overdue: true
+                submission_count: 0
+                created_at: "2026-02-10T15:00:00Z"
+                updated_at: "2026-02-17T09:00:00Z"
+                submitted_at: null
+                reviewed_at: null
         '404':
           description: Работа ученика не найдена
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /course-progress/{id}:
+    get:
+      summary: Получить информацию о прогрессе курса
+      description: Возвращает информацию о прогрессе ученика по курсу по идентификатору прогресса
+      operationId: getCourseProgressById
+      parameters:
+        - name: id
+          in: path
+          description: Идентификатор прогресса курса
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "di6310c4-da79-04ij-f99g-k62kh6k45fj3"
+      responses:
+        '200':
+          description: Успешный ответ с информацией о прогрессе курса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseProgress'
               example:
-                error: "Homework not found"
-                message: "Homework with ID di6310c4-da79-04ij-f99g-k62kh6k45fj3 does not exist"
+                id: "di6310c4-da79-04ij-f99g-k62kh6k45fj3"
+                course_id: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+                student_id: "123e4567-e89b-12d3-a456-426614174000"
+                progress_status: "started"
+                current_lesson_id: "9e2f7780-9635-60ef-b55c-g28gd2g01bf9"
+                completed_at: null
+                created_at: "2026-02-11T10:00:00Z"
+                updated_at: "2026-02-12T14:00:00Z"
+        '404':
+          description: Прогресс курса не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
   schemas:
@@ -254,11 +280,9 @@ components:
         - id
         - platform_id
         - title
-        - status
-        - payment_status
-        - schedule_status
-        - is_completed
-        - order_index
+        - lifecycle_status
+        - is_paid
+        - has_schedule
         - created_at
         - updated_at
       properties:
@@ -269,33 +293,23 @@ components:
         platform_id:
           type: string
           format: uuid
-          description: Ссылка на платформу
+          description: Идентификатор платформы
         title:
           type: string
-          maxLength: 255
           description: Название курса
         description:
           type: string
           description: Описание курса
-        status:
+        lifecycle_status:
           type: string
-          enum: [developing, available, archived]
-          description: Статус курса
-        payment_status:
-          type: string
-          enum: [unpaid, paid]
-          description: Статус оплаты
-        schedule_status:
-          type: string
-          enum: [not_scheduled, scheduled]
-          description: Статус расписания
-        is_completed:
+          enum: [developing, active, archived]
+          description: Статус жизненного цикла курса
+        is_paid:
           type: boolean
-          description: Завершен ли курс
-        order_index:
-          type: integer
-          minimum: 1
-          description: Порядковый номер в рамках платформы
+          description: Оплачен ли курс
+        has_schedule:
+          type: boolean
+          description: Есть ли расписание
         created_at:
           type: string
           format: date-time
@@ -311,13 +325,11 @@ components:
         - id
         - course_id
         - title
-        - status
+        - order_number
         - has_review
-        - is_required
-        - is_overdue
-        - order_index
-        - is_first_in_course
-        - is_last_in_course
+        - is_optional
+        - is_first
+        - is_last
         - created_at
         - updated_at
       properties:
@@ -328,35 +340,27 @@ components:
         course_id:
           type: string
           format: uuid
-          description: Ссылка на курс
+          description: Идентификатор курса
         title:
           type: string
-          maxLength: 255
           description: Название урока
         description:
           type: string
           description: Описание урока
-        status:
-          type: string
-          enum: [pending, current, completed]
-          description: Статус урока
-        has_review:
-          type: boolean
-          description: Требуется ли ревью работы
-        is_required:
-          type: boolean
-          description: Обязателен ли урок для прохождения курса
-        is_overdue:
-          type: boolean
-          description: Просрочен ли урок
-        order_index:
+        order_number:
           type: integer
           minimum: 1
-          description: Порядковый номер в рамках курса
-        is_first_in_course:
+          description: Порядковый номер в курсе
+        has_review:
+          type: boolean
+          description: Есть ли ревью
+        is_optional:
+          type: boolean
+          description: Необязательный ли урок
+        is_first:
           type: boolean
           description: Первый ли урок в курсе
-        is_last_in_course:
+        is_last:
           type: boolean
           description: Последний ли урок в курсе
         created_at:
@@ -374,10 +378,9 @@ components:
         - id
         - lesson_id
         - title
-        - type
+        - order_number
         - has_checklist
         - has_illustration
-        - order_index
         - created_at
         - updated_at
       properties:
@@ -388,28 +391,23 @@ components:
         lesson_id:
           type: string
           format: uuid
-          description: Ссылка на урок
+          description: Идентификатор урока
         title:
           type: string
-          maxLength: 255
           description: Название шага
         description:
           type: string
           description: Описание шага
-        type:
-          type: string
-          enum: [reading, quiz, practice, submit]
-          description: Тип шага
+        order_number:
+          type: integer
+          minimum: 1
+          description: Порядковый номер в уроке
         has_checklist:
           type: boolean
           description: Есть ли чеклист самопроверки
         has_illustration:
           type: boolean
           description: Есть ли иллюстрация
-        order_index:
-          type: integer
-          minimum: 1
-          description: Порядковый номер в рамках урока
         created_at:
           type: string
           format: date-time
@@ -419,11 +417,14 @@ components:
           format: date-time
           description: Дата последнего обновления
 
-    Homework:
+    StudentWork:
       type: object
       required:
         - id
         - lesson_id
+        - student_id
+        - status
+        - is_overdue
         - submission_count
         - created_at
         - updated_at
@@ -435,45 +436,77 @@ components:
         lesson_id:
           type: string
           format: uuid
-          description: Ссылка на урок
-        title:
+          description: Идентификатор урока
+        student_id:
           type: string
-          maxLength: 255
-          nullable: true
-          description: Название работы
-        description:
-          type: string
-          nullable: true
-          description: Описание работы
+          format: uuid
+          description: Идентификатор ученика
         status:
           type: string
-          enum: [in_progress, submitted, accepted, overdue, returned]
-          nullable: true
+          enum: [in_work, under_review, submitted]
           description: Статус работы
+        is_overdue:
+          type: boolean
+          description: Есть ли отставание
         submission_count:
           type: integer
           minimum: 0
           description: Количество отправок на ревью
-        review_stage:
+        created_at:
           type: string
-          enum: [robot, junior_reviewer, senior_reviewer]
-          nullable: true
-          description: Этап ревью
+          format: date-time
+          description: Дата создания записи
+        updated_at:
+          type: string
+          format: date-time
+          description: Дата последнего обновления
         submitted_at:
           type: string
           format: date-time
           nullable: true
           description: Дата отправки на ревью
-        accepted_at:
+        reviewed_at:
           type: string
           format: date-time
           nullable: true
-          description: Дата принятия работы
-        returned_at:
+          description: Дата проверки
+
+    CourseProgress:
+      type: object
+      required:
+        - id
+        - course_id
+        - student_id
+        - progress_status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор прогресса
+        course_id:
+          type: string
+          format: uuid
+          description: Идентификатор курса
+        student_id:
+          type: string
+          format: uuid
+          description: Идентификатор ученика
+        progress_status:
+          type: string
+          enum: [started, completed]
+          description: Статус прогресса
+        current_lesson_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Идентификатор текущего урока
+        completed_at:
           type: string
           format: date-time
           nullable: true
-          description: Дата возврата на доработку
+          description: Дата завершения курса
         created_at:
           type: string
           format: date-time

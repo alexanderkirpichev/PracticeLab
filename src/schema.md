@@ -2,113 +2,134 @@
 
 ## Таблицы
 
-### platform
-Корневая сущность - платформа обучения.
+### platforms
+Хранит информацию о платформе обучения.
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| id | UUID | Да | Уникальный идентификатор платформы |
-| name | VARCHAR(255) | Да | Название платформы |
-| url | VARCHAR(500) | Да | URL платформы |
-| created_at | TIMESTAMP | Да | Дата создания записи |
-| updated_at | TIMESTAMP | Да | Дата последнего обновления |
+| Поле | Тип | Описание | Constraints |
+|------|-----|----------|-------------|
+| id | UUID | Уникальный идентификатор | PRIMARY KEY |
+| name | VARCHAR(255) | Название платформы | NOT NULL |
+| url | VARCHAR(500) | URL платформы | NOT NULL |
+| created_at | TIMESTAMP | Дата создания | DEFAULT CURRENT_TIMESTAMP |
+| updated_at | TIMESTAMP | Дата обновления | DEFAULT CURRENT_TIMESTAMP |
 
-### course
-Курс - упорядоченный набор уроков по теме.
+### courses
+Хранит информацию о курсах.
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| id | UUID | Да | Уникальный идентификатор курса |
-| platform_id | UUID | Да | Ссылка на платформу |
-| title | VARCHAR(255) | Да | Название курса |
-| description | TEXT | Нет | Описание курса |
-| status | ENUM | Да | Статус курса: `developing`, `available`, `archived` |
-| payment_status | ENUM | Да | Статус оплаты: `unpaid`, `paid` |
-| schedule_status | ENUM | Да | Статус расписания: `not_scheduled`, `scheduled` |
-| is_completed | BOOLEAN | Да | Завершен ли курс |
-| order_index | INTEGER | Да | Порядковый номер в рамках платформы |
-| created_at | TIMESTAMP | Да | Дата создания записи |
-| updated_at | TIMESTAMP | Да | Дата последнего обновления |
+| Поле | Тип | Описание | Constraints |
+|------|-----|----------|-------------|
+| id | UUID | Уникальный идентификатор | PRIMARY KEY |
+| platform_id | UUID | Ссылка на платформу | FOREIGN KEY (platforms.id) |
+| title | VARCHAR(255) | Название курса | NOT NULL |
+| description | TEXT | Описание курса | |
+| lifecycle_status | ENUM('developing', 'active', 'archived') | Статус жизненного цикла | NOT NULL DEFAULT 'developing' |
+| is_paid | BOOLEAN | Оплачен ли курс | DEFAULT FALSE |
+| has_schedule | BOOLEAN | Есть ли расписание | DEFAULT FALSE |
+| created_at | TIMESTAMP | Дата создания | DEFAULT CURRENT_TIMESTAMP |
+| updated_at | TIMESTAMP | Дата обновления | DEFAULT CURRENT_TIMESTAMP |
 
-**Constraints:**
-- `FOREIGN KEY (platform_id) REFERENCES platform(id)`
-- `UNIQUE (platform_id, order_index)` - уникальный порядок в рамках платформы
+### lessons
+Хранит информацию об уроках.
 
-### lesson
-Урок - учебная единица внутри курса.
+| Поле | Тип | Описание | Constraints |
+|------|-----|----------|-------------|
+| id | UUID | Уникальный идентификатор | PRIMARY KEY |
+| course_id | UUID | Ссылка на курс | FOREIGN KEY (courses.id) |
+| title | VARCHAR(255) | Название урока | NOT NULL |
+| description | TEXT | Описание урока | |
+| order_number | INTEGER | Порядковый номер в курсе | NOT NULL |
+| has_review | BOOLEAN | Есть ли ревью | NOT NULL DEFAULT FALSE |
+| is_optional | BOOLEAN | Необязательный ли урок | NOT NULL DEFAULT FALSE |
+| is_first | BOOLEAN | Первый ли урок в курсе | DEFAULT FALSE |
+| is_last | BOOLEAN | Последний ли урок в курсе | DEFAULT FALSE |
+| created_at | TIMESTAMP | Дата создания | DEFAULT CURRENT_TIMESTAMP |
+| updated_at | TIMESTAMP | Дата обновления | DEFAULT CURRENT_TIMESTAMP |
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| id | UUID | Да | Уникальный идентификатор урока |
-| course_id | UUID | Да | Ссылка на курс |
-| title | VARCHAR(255) | Да | Название урока |
-| description | TEXT | Нет | Описание урока |
-| status | ENUM | Да | Статус урока: `pending`, `current`, `completed` |
-| has_review | BOOLEAN | Да | Требуется ли ревью работы |
-| is_required | BOOLEAN | Да | Обязателен ли урок для прохождения курса |
-| is_overdue | BOOLEAN | Да | Просрочен ли урок |
-| order_index | INTEGER | Да | Порядковый номер в рамках курса |
-| is_first_in_course | BOOLEAN | Да | Первый ли урок в курсе |
-| is_last_in_course | BOOLEAN | Да | Последний ли урок в курсе |
-| created_at | TIMESTAMP | Да | Дата создания записи |
-| updated_at | TIMESTAMP | Да | Дата последнего обновления |
+### steps
+Хранит информацию о шагах урока.
 
-**Constraints:**
-- `FOREIGN KEY (course_id) REFERENCES course(id)`
-- `UNIQUE (course_id, order_index)` - уникальный порядок в рамках курса
-- `CHECK (NOT (is_first_in_course AND is_last_in_course))` - урок не может быть одновременно первым и последним
+| Поле | Тип | Описание | Constraints |
+|------|-----|----------|-------------|
+| id | UUID | Уникальный идентификатор | PRIMARY KEY |
+| lesson_id | UUID | Ссылка на урок | FOREIGN KEY (lessons.id) |
+| title | VARCHAR(255) | Название шага | NOT NULL |
+| description | TEXT | Описание шага | |
+| order_number | INTEGER | Порядковый номер в уроке | NOT NULL |
+| has_checklist | BOOLEAN | Есть ли чеклист самопроверки | DEFAULT FALSE |
+| has_illustration | BOOLEAN | Есть ли иллюстрация | DEFAULT FALSE |
+| created_at | TIMESTAMP | Дата создания | DEFAULT CURRENT_TIMESTAMP |
+| updated_at | TIMESTAMP | Дата обновления | DEFAULT CURRENT_TIMESTAMP |
 
-### step
-Шаг - минимальная единица взаимодействия ученика с уроком.
+### student_works
+Хранит информацию о работах учеников.
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| id | UUID | Да | Уникальный идентификатор шага |
-| lesson_id | UUID | Да | Ссылка на урок |
-| title | VARCHAR(255) | Да | Название шага |
-| description | TEXT | Нет | Описание шага |
-| type | ENUM | Да | Тип шага: `reading`, `quiz`, `practice`, `submit` |
-| has_checklist | BOOLEAN | Да | Есть ли чеклист самопроверки |
-| has_illustration | BOOLEAN | Да | Есть ли иллюстрация |
-| order_index | INTEGER | Да | Порядковый номер в рамках урока |
-| created_at | TIMESTAMP | Да | Дата создания записи |
-| updated_at | TIMESTAMP | Да | Дата последнего обновления |
+| Поле | Тип | Описание | Constraints |
+|------|-----|----------|-------------|
+| id | UUID | Уникальный идентификатор | PRIMARY KEY |
+| lesson_id | UUID | Ссылка на урок | FOREIGN KEY (lessons.id) |
+| student_id | UUID | Идентификатор ученика | NOT NULL |
+| status | ENUM('in_work', 'under_review', 'submitted') | Статус работы | NOT NULL DEFAULT 'in_work' |
+| is_overdue | BOOLEAN | Есть ли отставание | DEFAULT FALSE |
+| submission_count | INTEGER | Количество отправок на ревью | DEFAULT 0 |
+| created_at | TIMESTAMP | Дата создания | DEFAULT CURRENT_TIMESTAMP |
+| updated_at | TIMESTAMP | Дата обновления | DEFAULT CURRENT_TIMESTAMP |
+| submitted_at | TIMESTAMP | Дата отправки на ревью | |
+| reviewed_at | TIMESTAMP | Дата проверки | |
 
-**Constraints:**
-- `FOREIGN KEY (lesson_id) REFERENCES lesson(id)`
-- `UNIQUE (lesson_id, order_index)` - уникальный порядок в рамках урока
+### course_progress
+Хранит прогресс учеников по курсам.
 
-### homework
-Работа ученика - результат прохождения урока с ревью.
-
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| id | UUID | Да | Уникальный идентификатор работы |
-| lesson_id | UUID | Да | Ссылка на урок |
-| title | VARCHAR(255) | Да | Название работы |
-| description | TEXT | Нет | Описание работы |
-| status | ENUM | Да | Статус работы: `in_progress`, `submitted`, `accepted`, `overdue`, `returned` |
-| submission_count | INTEGER | Да | Количество отправок на ревью |
-| review_stage | ENUM | Нет | Этап ревью: `robot`, `junior_reviewer`, `senior_reviewer` |
-| submitted_at | TIMESTAMP | Нет | Дата отправки на ревью |
-| accepted_at | TIMESTAMP | Нет | Дата принятия работы |
-| returned_at | TIMESTAMP | Нет | Дата возврата на доработку |
-| created_at | TIMESTAMP | Да | Дата создания записи |
-| updated_at | TIMESTAMP | Да | Дата последнего обновления |
-
-**Constraints:**
-- `FOREIGN KEY (lesson_id) REFERENCES lesson(id)`
-- `CHECK (submission_count >= 0)` - счетчик отправок не может быть отрицательным
-- `CHECK (NOT (submitted_at IS NOT NULL AND status = 'in_progress'))` - если отправлена, не может быть в работе
-- `CHECK (NOT (accepted_at IS NOT NULL AND status != 'accepted'))` - если принята, статус должен быть accepted
-- `CHECK (NOT (returned_at IS NOT NULL AND status != 'returned'))` - если возвращена, статус должен быть returned
+| Поле | Тип | Описание | Constraints |
+|------|-----|----------|-------------|
+| id | UUID | Уникальный идентификатор | PRIMARY KEY |
+| course_id | UUID | Ссылка на курс | FOREIGN KEY (courses.id) |
+| student_id | UUID | Идентификатор ученика | NOT NULL |
+| progress_status | ENUM('started', 'completed') | Статус прогресса | NOT NULL DEFAULT 'started' |
+| current_lesson_id | UUID | Текущий урок | FOREIGN KEY (lessons.id) |
+| completed_at | TIMESTAMP | Дата завершения курса | |
+| created_at | TIMESTAMP | Дата создания | DEFAULT CURRENT_TIMESTAMP |
+| updated_at | TIMESTAMP | Дата обновления | DEFAULT CURRENT_TIMESTAMP |
 
 ## Связи
 
-1. **platform** (1) → (N) **course** - одна платформа содержит много курсов
-2. **course** (1) → (N) **lesson** - один курс содержит много уроков
-3. **lesson** (1) → (N) **step** - один урок содержит много шагов
-4. **lesson** (1) → (N) **homework** - один урок может иметь много работ ученика (например, при пересдачах)
+1. **platforms** (1) → (N) **courses**
+   - Одна платформа содержит много курсов
+   - `courses.platform_id` → `platforms.id`
+
+2. **courses** (1) → (N) **lessons**
+   - Один курс содержит много уроков
+   - `lessons.course_id` → `courses.id`
+
+3. **lessons** (1) → (N) **steps**
+   - Один урок содержит много шагов
+   - `steps.lesson_id` → `lessons.id`
+
+4. **lessons** (1) → (N) **student_works**
+   - Один урок может иметь много работ учеников
+   - `student_works.lesson_id` → `lessons.id`
+
+5. **courses** (1) → (N) **course_progress**
+   - По одному курсу может быть много записей прогресса учеников
+   - `course_progress.course_id` → `courses.id`
+
+6. **lessons** (1) → (N) **course_progress**
+   - Текущий урок в прогрессе
+   - `course_progress.current_lesson_id` → `lessons.id`
+
+## Constraints
+
+1. Уникальные индексы:
+   - `UNIQUE(courses.platform_id, courses.title)` - уникальное название курса в рамках платформы
+   - `UNIQUE(lessons.course_id, lessons.order_number)` - уникальный порядковый номер урока в курсе
+   - `UNIQUE(steps.lesson_id, steps.order_number)` - уникальный порядковый номер шага в уроке
+   - `UNIQUE(course_progress.course_id, course_progress.student_id)` - один прогресс на курс для ученика
+   - `UNIQUE(student_works.lesson_id, student_works.student_id)` - одна работа на урок для ученика
+
+2. Проверочные constraints:
+   - `CHECK (lessons.has_review = TRUE OR student_works.id IS NULL)` - работа существует только для уроков с ревью
+   - `CHECK (student_works.is_overdue = TRUE AND student_works.status = 'in_work')` - отставание только для работ "В работе"
+   - `CHECK (courses.lifecycle_status = 'active' AND (courses.is_paid = TRUE OR courses.has_schedule = TRUE))` - оплата и расписание только для активных курсов
+   - `CHECK (NOT (lessons.is_first = TRUE AND lessons.is_last = TRUE))` - урок не может быть одновременно первым и последним
 
 ## Примеры данных
 
@@ -118,238 +139,217 @@
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "name": "PracticeLab Platform",
   "url": "https://dvmn.org",
-  "created_at": "2024-01-15T10:00:00Z",
-  "updated_at": "2024-01-15T10:00:00Z"
+  "created_at": "2026-01-15T10:00:00Z",
+  "updated_at": "2026-01-15T10:00:00Z"
 }
 ```
 
 ### Курс (разрабатываемый)
 ```json
 {
-  "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
   "platform_id": "550e8400-e29b-41d4-a716-446655440000",
   "title": "Python для начинающих",
   "description": "Курс по основам программирования на Python",
-  "status": "developing",
-  "payment_status": "unpaid",
-  "schedule_status": "not_scheduled",
-  "is_completed": false,
-  "order_index": 1,
-  "created_at": "2024-01-20T14:30:00Z",
-  "updated_at": "2024-01-20T14:30:00Z"
+  "lifecycle_status": "developing",
+  "is_paid": false,
+  "has_schedule": false,
+  "created_at": "2026-02-01T09:00:00Z",
+  "updated_at": "2026-02-01T09:00:00Z"
 }
 ```
 
-### Курс (доступный для выбора, оплаченный, расписание согласовано)
+### Курс (активный, оплаченный, в расписании)
 ```json
 {
-  "id": "8d1e6679-8525-50de-a44b-f17fc1f90ae8",
+  "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
   "platform_id": "550e8400-e29b-41d4-a716-446655440000",
   "title": "Веб-разработка на Django",
   "description": "Полный курс по созданию веб-приложений на Django",
-  "status": "available",
-  "payment_status": "paid",
-  "schedule_status": "scheduled",
-  "is_completed": false,
-  "order_index": 2,
-  "created_at": "2024-02-01T09:15:00Z",
-  "updated_at": "2024-02-10T11:20:00Z"
+  "lifecycle_status": "active",
+  "is_paid": true,
+  "has_schedule": true,
+  "created_at": "2026-02-10T11:00:00Z",
+  "updated_at": "2026-02-15T14:30:00Z"
 }
 ```
 
-### Курс (архивный)
+### Урок (с ревью, обязательный, первый в курсе)
 ```json
 {
-  "id": "9f2a7780-9635-60ef-b55c-g28gd2g01bf9",
-  "platform_id": "550e8400-e29b-41d4-a716-446655440000",
-  "title": "Устаревший курс по PHP 5",
-  "description": "Курс по устаревшей версии PHP",
-  "status": "archived",
-  "payment_status": "unpaid",
-  "schedule_status": "not_scheduled",
-  "is_completed": false,
-  "order_index": 3,
-  "created_at": "2023-06-01T10:00:00Z",
-  "updated_at": "2024-01-15T14:30:00Z"
+  "id": "8d1e6679-8525-50de-a44b-f17fc1f90ae8",
+  "course_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "title": "Введение в Python",
+  "description": "Основы синтаксиса Python",
+  "order_number": 1,
+  "has_review": false,
+  "is_optional": false,
+  "is_first": true,
+  "is_last": false,
+  "created_at": "2026-02-10T11:30:00Z",
+  "updated_at": "2026-02-10T11:30:00Z"
 }
 ```
 
-### Урок (текущий, с ревью, обязательный)
+### Урок (с ревью, обязательный)
 ```json
 {
   "id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
-  "course_id": "8d1e6679-8525-50de-a44b-f17fc1f90ae8",
+  "course_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
   "title": "HTTP протокол и REST API",
   "description": "Изучение основ HTTP и принципов REST",
-  "status": "current",
+  "order_number": 3,
   "has_review": true,
-  "is_required": true,
-  "is_overdue": false,
-  "order_index": 3,
-  "is_first_in_course": false,
-  "is_last_in_course": false,
-  "created_at": "2024-02-05T10:00:00Z",
-  "updated_at": "2024-02-12T15:30:00Z"
+  "is_optional": false,
+  "is_first": false,
+  "is_last": false,
+  "created_at": "2026-02-10T12:00:00Z",
+  "updated_at": "2026-02-10T12:00:00Z"
 }
 ```
 
-### Урок (пройденный, без ревью, обязательный)
+### Шаг (с чеклистом самопроверки)
 ```json
 {
   "id": "af308791-a746-71fg-c66d-h39he3h12cg0",
-  "course_id": "8d1e6679-8525-50de-a44b-f17fc1f90ae8",
-  "title": "Введение в Python",
-  "description": "Основы синтаксиса Python",
-  "status": "completed",
-  "has_review": false,
-  "is_required": true,
-  "is_overdue": false,
-  "order_index": 1,
-  "is_first_in_course": true,
-  "is_last_in_course": false,
-  "created_at": "2024-02-01T10:00:00Z",
-  "updated_at": "2024-02-08T14:20:00Z"
+  "lesson_id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
+  "title": "Склонируй репозиторий с GitHub",
+  "description": "Клонирование учебного репозитория для начала работы",
+  "order_number": 1,
+  "has_checklist": true,
+  "has_illustration": false,
+  "created_at": "2026-02-10T12:05:00Z",
+  "updated_at": "2026-02-10T12:05:00Z"
 }
 ```
 
-### Урок (необязательный, без ревью)
-```json
-{
-  "id": "gh9643i7-id8c-37jk-i22k-n95on9o78im6",
-  "course_id": "8d1e6679-8525-50de-a44b-f17fc1f90ae8",
-  "title": "Дополнительные материалы по Git",
-  "description": "Продвинутые техники работы с Git",
-  "status": "pending",
-  "has_review": false,
-  "is_required": false,
-  "is_overdue": false,
-  "order_index": 8,
-  "is_first_in_course": false,
-  "is_last_in_course": false,
-  "created_at": "2024-02-05T11:00:00Z",
-  "updated_at": "2024-02-05T11:00:00Z"
-}
-```
-
-### Шаг (с чеклистом и иллюстрацией)
+### Работа ученика (в работе)
 ```json
 {
   "id": "bg4198a2-b857-82gh-d77e-i40if4i23dh1",
   "lesson_id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
-  "title": "Склонируй репозиторий с GitHub",
-  "description": "Клонирование учебного репозитория для начала работы",
-  "type": "practice",
-  "has_checklist": true,
-  "has_illustration": true,
-  "order_index": 1,
-  "created_at": "2024-02-05T10:05:00Z",
-  "updated_at": "2024-02-05T10:05:00Z"
+  "student_id": "123e4567-e89b-12d3-a456-426614174000",
+  "status": "in_work",
+  "is_overdue": false,
+  "submission_count": 0,
+  "created_at": "2026-02-12T14:00:00Z",
+  "updated_at": "2026-02-12T14:00:00Z",
+  "submitted_at": null,
+  "reviewed_at": null
 }
 ```
 
-### Шаг (отправка работы)
+### Работа ученика (с отставанием)
 ```json
 {
   "id": "ch5209b3-c968-93hi-e88f-j51jg5j34ei2",
   "lesson_id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
-  "title": "Отправь работу на ревью",
-  "description": "Загрузка выполненной работы для проверки преподавателем",
-  "type": "submit",
-  "has_checklist": false,
-  "has_illustration": false,
-  "order_index": 6,
-  "created_at": "2024-02-05T10:10:00Z",
-  "updated_at": "2024-02-05T10:10:00Z"
+  "student_id": "123e4567-e89b-12d3-a456-426614174001",
+  "status": "in_work",
+  "is_overdue": true,
+  "submission_count": 0,
+  "created_at": "2026-02-10T15:00:00Z",
+  "updated_at": "2026-02-17T09:00:00Z",
+  "submitted_at": null,
+  "reviewed_at": null
 }
 ```
 
-### Работа ученика (выполненная, отправлена на ревью роботу)
+### Прогресс курса (начатый)
 ```json
 {
   "id": "di6310c4-da79-04ij-f99g-k62kh6k45fj3",
-  "lesson_id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
-  "title": "Реализация REST API для блога",
-  "description": "Создание API endpoints для CRUD операций с постами",
-  "status": "submitted",
-  "submission_count": 1,
-  "review_stage": "robot",
-  "submitted_at": "2024-02-12T16:45:00Z",
-  "accepted_at": null,
-  "returned_at": null,
-  "created_at": "2024-02-10T14:00:00Z",
-  "updated_at": "2024-02-12T16:45:00Z"
+  "course_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "student_id": "123e4567-e89b-12d3-a456-426614174000",
+  "progress_status": "started",
+  "current_lesson_id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
+  "completed_at": null,
+  "created_at": "2026-02-11T10:00:00Z",
+  "updated_at": "2026-02-12T14:00:00Z"
 }
 ```
 
-### Работа ученика (возвращена на доработку)
+## Примеры на крайний случай
+
+### 1. Урок без ревью (отсутствует работа ученика)
 ```json
 {
   "id": "ej7421d5-eb8a-15jk-g00h-l73li7l56gk4",
-  "lesson_id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
-  "title": "Реализация REST API для блога (исправленная)",
-  "description": "Создание API endpoints для CRUD операций с постами - исправленная версия",
-  "status": "returned",
-  "submission_count": 2,
-  "review_stage": "junior_reviewer",
-  "submitted_at": "2024-02-14T10:30:00Z",
-  "accepted_at": null,
-  "returned_at": "2024-02-15T09:15:00Z",
-  "created_at": "2024-02-10T14:00:00Z",
-  "updated_at": "2024-02-15T09:15:00Z"
+  "course_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "title": "Чтение материалов",
+  "description": "Изучение теоретических материалов",
+  "order_number": 2,
+  "has_review": false,
+  "is_optional": false,
+  "is_first": false,
+  "is_last": false,
+  "created_at": "2026-02-10T11:45:00Z",
+  "updated_at": "2026-02-10T11:45:00Z"
 }
 ```
 
-### Работа ученика (принята старшим проверяющим)
+*Примечание: Для этого урока не создается запись в таблице `student_works`.*
+
+### 2. Необязательный урок с ревью (работа не учитывается в прогрессе)
 ```json
 {
   "id": "fk8532e6-fc9b-26kl-h11i-m84mj8m67hl5",
-  "lesson_id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
-  "title": "Реализация REST API для блога (финальная)",
-  "description": "Создание API endpoints для CRUD операций с постами - финальная версия",
-  "status": "accepted",
-  "submission_count": 3,
-  "review_stage": "senior_reviewer",
-  "submitted_at": "2024-02-16T14:20:00Z",
-  "accepted_at": "2024-02-17T11:45:00Z",
-  "returned_at": null,
-  "created_at": "2024-02-10T14:00:00Z",
-  "updated_at": "2024-02-17T11:45:00Z"
+  "course_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "title": "Дополнительные материалы",
+  "description": "Расширенные темы по Django",
+  "order_number": 8,
+  "has_review": true,
+  "is_optional": true,
+  "is_first": false,
+  "is_last": false,
+  "created_at": "2026-02-10T13:00:00Z",
+  "updated_at": "2026-02-10T13:00:00Z"
 }
 ```
 
-### Работа ученика (просроченная)
+*Примечание: Работа по этому уроку разрешена, но не влияет на прогресс курса.*
+
+### 3. Архивный курс
 ```json
 {
   "id": "gl9643i7-jd9d-48kl-j33l-o06po0p89jn7",
-  "lesson_id": "af308791-a746-71fg-c66d-h39he3h12cg0",
-  "title": "Практика с базовыми типами данных",
-  "description": "Упражнения со списками, словарями и кортежами",
-  "status": "overdue",
-  "submission_count": 0,
-  "review_stage": null,
-  "submitted_at": null,
-  "accepted_at": null,
-  "returned_at": null,
-  "created_at": "2024-02-03T11:00:00Z",
-  "updated_at": "2024-02-10T09:00:00Z"
+  "platform_id": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "Устаревший курс по PHP 5",
+  "description": "Курс по устаревшей версии PHP",
+  "lifecycle_status": "archived",
+  "is_paid": false,
+  "has_schedule": false,
+  "created_at": "2025-06-01T10:00:00Z",
+  "updated_at": "2026-01-15T14:30:00Z"
 }
 ```
 
-### Крайний случай: отсутствует работа для урока без ревью
+### 4. Работа ученика на проверке
 ```json
 {
   "id": "hm0754j8-ke0e-59lm-k44m-p17qp1q90ko8",
-  "lesson_id": "af308791-a746-71fg-c66d-h39he3h12cg0",
-  "title": null,
-  "description": null,
-  "status": null,
-  "submission_count": 0,
-  "review_stage": null,
-  "submitted_at": null,
-  "accepted_at": null,
-  "returned_at": null,
-  "created_at": "2024-02-01T10:00:00Z",
-  "updated_at": "2024-02-01T10:00:00Z"
+  "lesson_id": "9e2f7780-9635-60ef-b55c-g28gd2g01bf9",
+  "student_id": "123e4567-e89b-12d3-a456-426614174002",
+  "status": "under_review",
+  "is_overdue": false,
+  "submission_count": 1,
+  "created_at": "2026-02-14T16:00:00Z",
+  "updated_at": "2026-02-14T16:00:00Z",
+  "submitted_at": "2026-02-14T16:00:00Z",
+  "reviewed_at": null
 }
 ```
-*Примечание: Для урока без ревью (`has_review: false`) работа может быть создана с пустыми полями, что указывает на отсутствие необходимости в работе.*
+
+### 5. Завершенный курс (прогресс ученика)
+```json
+{
+  "id": "in1865k9-lf1f-60mn-l55n-q28rq2r01lp9",
+  "course_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "student_id": "123e4567-e89b-12d3-a456-426614174003",
+  "progress_status": "completed",
+  "current_lesson_id": null,
+  "completed_at": "2026-03-01T15:00:00Z",
+  "created_at": "2026-01-20T10:00:00Z",
+  "updated_at": "2026-03-01T15:00:00Z"
+}
+```
