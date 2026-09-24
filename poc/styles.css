@@ -165,6 +165,27 @@ body {
 .step.done { background: #f0fdf4; border-color: #bbf7d0; }
 .step-done { color: var(--success); font-size: 13px; white-space: nowrap; }
 
+.step-block { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+.step-block.done { background: #f0fdf4; border-color: #bbf7d0; }
+.step-block .step { border: none; border-radius: 0; }
+.step-comments { padding: 0 12px 10px; }
+.comments-box { padding: 0 12px 12px; border-top: 1px dashed var(--border); }
+.comments { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.comments li { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.comment-meta { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+.badge-draft { background: #fef3c7; color: #b45309; }
+.badge-practice { background: #ede9fe; color: #6d28d9; }
+.badge-developed { background: #dcfce7; color: #15803d; }
+.badge-conducted { background: #e5e7eb; color: #6b7280; }
+.badge-paid { background: #dcfce7; color: #15803d; }
+
+.practice-box { padding: 0 12px 12px; border-top: 1px dashed var(--border); }
+.practice-error { margin: 8px 0 0; font-size: 13px; }
+.illus { font-size: 13px; }
+
+.pay-form { padding: 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; }
+.price { font-weight: 700; font-size: 15px; }
+
 .work-content {
   background: #f8fafc;
   border: 1px solid var(--border);

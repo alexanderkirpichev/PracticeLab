@@ -20,6 +20,7 @@ const NAV = {
   ],
   author: [
     { path: '/author', label: 'Мои курсы' },
+    { path: '/schedule', label: 'Расписание' },
   ],
 };
 
@@ -32,6 +33,8 @@ const routes = [
   { pattern: /^\/lesson\/([\w-]+)$/, template: 'templates/lesson.html', load: () => import('./pages/lesson.js') },
   { pattern: /^\/review$/, template: 'templates/review.html', load: () => import('./pages/review.js') },
   { pattern: /^\/author$/, template: 'templates/author.html', load: () => import('./pages/author.js') },
+  { pattern: /^\/schedule$/, template: 'templates/schedule.html', load: () => import('./pages/schedule.js') },
+  { pattern: /^\/lesson-editor\/([\w-]+)$/, template: 'templates/lesson-editor.html', load: () => import('./pages/lesson-editor.js') },
 ];
 
 const TITLES = {
@@ -39,6 +42,7 @@ const TITLES = {
   '/my-courses': 'Мои курсы',
   '/review': 'Очередь проверки',
   '/author': 'Мои курсы',
+  '/schedule': 'Расписание занятий',
 };
 
 export function navigate(path) {
@@ -71,6 +75,8 @@ function renderRoleSwitch() {
 }
 
 function guardForRole(role, path) {
+  const authorOnly = path === '/schedule' || path.startsWith('/lesson-editor/');
+  if (authorOnly && role !== 'author') return false;
   if (role === 'student' && ['/review', '/author'].includes(path)) return false;
   if (role === 'reviewer' && ['/catalog', '/my-courses', '/author'].includes(path)) return false;
   if (role === 'author' && ['/catalog', '/my-courses', '/review'].includes(path)) return false;

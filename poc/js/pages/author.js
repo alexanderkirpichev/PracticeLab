@@ -41,7 +41,7 @@ export async function init(root) {
             <p class="muted">${escapeHtml(c.description) || 'Без описания'}</p>
             <div class="meta">
               ${statusBadge(c.status)}
-              <span class="muted">${c.lessonsCount} урок(ов)</span>
+              <span class="muted">${c.lessonsCount} урок(ов)${c.draftLessonsCount ? ` · ${c.draftLessonsCount} в черновике` : ''}</span>
               ${c.reviewerName
                 ? `<span class="muted">· ${escapeHtml(c.reviewerName)}</span>`
                 : '<span class="muted">· проверяющий не назначен</span>'}

@@ -15,7 +15,7 @@ export async function init(root) {
           <h2>${escapeHtml(c.title)}</h2>
           <p class="muted">${escapeHtml(c.description)}</p>
           <div class="meta">
-            ${c.lessonsCount} урок(ов) · ${statusBadge(c.progressStatus)}
+            ${c.lessonsCount} урок(ов) · ${statusBadge(c.progressStatus)}${c.paid ? ' · <span class="badge badge-paid">Оплачен</span>' : ''}
           </div>
         </div>
       </a>`).join('')

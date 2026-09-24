@@ -1,7 +1,7 @@
 // Очередь проверки (роль «Проверяющий»): value case «проверить работу».
 
 import { listWorksUnderReview, acceptWork, returnWork } from '../api.js';
-import { escapeHtml, runAction } from '../ui.js';
+import { escapeHtml, runAction, fmtDate } from '../ui.js';
 
 export async function init(root) {
   const listEl = root.querySelector('#review-list');
@@ -44,16 +44,18 @@ export async function init(root) {
           <h2>${escapeHtml(w.lessonTitle)}</h2>
           <p class="muted">Курс: ${escapeHtml(w.courseTitle)} · Ученик: ${escapeHtml(w.studentName)}</p>
           <p class="muted">Отправок: ${w.submissionCount}</p>
+          ${w.deadline ? `<p class="muted">Дата окончания курса: ${fmtDate(w.deadline)}${w.expired ? ' <span class="result warn">— срок истёк</span>' : ''}</p>` : ''}
           <pre class="work-content">${escapeHtml(w.content)}</pre>
         </div>
         <div class="card-actions col">
+          ${w.expired ? '<p class="result warn">Срок сдачи истёк — оценка недоступна.</p>' : ''}
           <div class="field">
             <label>Комментарий</label>
-            <textarea data-comments rows="2" placeholder="Замечания…"></textarea>
+            <textarea data-comments rows="2" placeholder="Замечания…" ${w.expired ? 'disabled' : ''}></textarea>
           </div>
           <div class="row">
-            <button class="btn btn-primary" data-accept>Принять</button>
-            <button class="btn btn-danger" data-return>Вернуть на доработку</button>
+            <button class="btn btn-primary" data-accept ${w.expired ? 'disabled' : ''}>Принять</button>
+            <button class="btn btn-danger" data-return ${w.expired ? 'disabled' : ''}>Вернуть на доработку</button>
           </div>
         </div>
       </article>`;
